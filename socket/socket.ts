@@ -5,7 +5,7 @@ import { messagesCollection } from '../mongo/client';
 async function listen(server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>) {
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000", // Allow frontend to connect
+      origin: process.env.CLIENT_ORIGIN_URL, // Allow frontend to connect
       methods: ["GET", "POST"]
     }
   });

@@ -1,7 +1,10 @@
-import { Server } from 'socket.io';
-import { messagesCollection } from '../mongo/client';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.socket = void 0;
+const socket_io_1 = require("socket.io");
+const client_1 = require("../mongo/client");
 async function listen(server) {
-    const io = new Server(server, {
+    const io = new socket_io_1.Server(server, {
         cors: {
             origin: process.env.CLIENT_ORIGIN_URL, // Allow frontend to connect
             methods: ["GET", "POST"]
@@ -17,7 +20,7 @@ async function listen(server) {
     io.on("connection", (socket) => {
         console.log("A user connected");
         socket.on("chat message", async (msg) => {
-            await messagesCollection.insertOne({ message: msg });
+            await client_1.messagesCollection.insertOne({ message: msg });
             io.emit("chat message", msg); // Broadcast message to all clients
         });
         socket.on("disconnect", () => {
@@ -32,4 +35,4 @@ async function listen(server) {
     });
 }
 const socket = { listen };
-export { socket };
+exports.socket = socket;

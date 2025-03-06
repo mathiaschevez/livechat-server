@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "ESNext",        // Use ESNext modules (supports `import`/`export`)
+    "module": "commonjs",
     "target": "ESNext",        // Output the latest ECMAScript version
     "outDir": "dist",          // Specify where the compiled files should go
     "rootDir": "./",           // Specify the root directory of your source code

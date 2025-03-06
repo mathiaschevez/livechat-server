@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
-    "module": "CommonJS",
-    "target": "ESNext",
-    "strict": true,
-    "esModuleInterop": true,
+    "module": "ESNext",        // Use ESNext modules (supports `import`/`export`)
+    "target": "ESNext",        // Output the latest ECMAScript version
+    "outDir": "dist",          // Specify where the compiled files should go
+    "rootDir": "./",           // Specify the root directory of your source code
+    "moduleResolution": "node",// Module resolution strategy (similar to Node.js)
+    "esModuleInterop": true,   // Enable compatibility with CommonJS-style modules
+    "skipLibCheck": true,      // Skip type checking of declaration files
+    "strict": true,            // Enable all strict type-checking options
+    "resolveJsonModule": true  
   }
 }

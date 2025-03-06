@@ -7,7 +7,9 @@ export const app = express();
 // Enable CORS for all requests
 app.use(cors({
   origin: process.env.CLIENT_ORIGIN_URL,
-  credentials:true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 app.use(express.json());
 

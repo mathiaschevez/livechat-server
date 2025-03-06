@@ -10,31 +10,34 @@ async function listen(server: http.Server<typeof http.IncomingMessage, typeof ht
     }
   });
 
-    // Change Stream for real-time updates
-    // const changeStream = messages.watch();
-    // changeStream.on("change", next => {
-    //   if (next.operationType === 'insert') {
-    //     io.emit('chat message', next.fullDocument?.message);
-    //   }
-    // });
+  // Change Stream for real-time updates (this part should also be handled)
+  // const changeStream = messages.watch();
+  // changeStream.on("change", next => {
+  //   if (next.operationType === 'insert') {
+  //     io.emit('chat message', next.fullDocument?.message);
+  //   }
+  // });
 
   io.on("connection", (socket) => {
     console.log("A user connected");
     socket.on("chat message", async (msg) => {
-      await messagesCollection.insertOne({ message: msg });
-      io.emit("chat message", msg); // Broadcast message to all clients
+      try {
+        await messagesCollection.insertOne({ message: msg });
+        io.emit("chat message", msg); // Broadcast message to all clients
+      } catch (err) {
+        console.error('Error inserting message into MongoDB:', err);
+        socket.emit("error", "Could not save message.");
+      }
     });
-  
+
     socket.on("disconnect", () => {
       console.log("User disconnected");
     });
   });
 
   io.engine.on("connection_error", (err) => {
-    console.log(err.req);      // the request object
-    console.log(err.code);     // the error code, for example 1
-    console.log(err.message);  // the error message, for example "Session ID unknown"
-    console.log(err.context);  // some additional error context
+    console.error('Socket connection error:', err.message);
+    console.error('Error details:', err);
   });
 }
 

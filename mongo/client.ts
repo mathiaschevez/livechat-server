@@ -5,9 +5,20 @@ config();
 
 const client = new MongoClient(process.env.MONGODB_CONNECTION_STRING ?? '', {
   retryWrites: true,
-  ignoreUndefined: true
+  ignoreUndefined: true,
 });
-client.connect().catch(console.error);
+
+async function connectMongo() {
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1); // Exit the process if unable to connect to MongoDB
+  }
+}
+
+connectMongo();
 
 const database = client.db('livechat');
 

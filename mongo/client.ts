@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 config();
 
 const client = new MongoClient(process.env.MONGODB_CONNECTION_STRING ?? '', {
-  replicaSet: 'rs0',
   retryWrites: true,
   ignoreUndefined: true
 });

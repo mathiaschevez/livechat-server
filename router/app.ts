@@ -5,7 +5,10 @@ import cors from 'cors';
 export const app = express();
 
 // Enable CORS for all requests
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_ORIGIN_URL,
+  credentials:true,
+}));
 app.use(express.json());
 
 

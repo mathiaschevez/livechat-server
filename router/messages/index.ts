@@ -3,7 +3,6 @@ import { messagesCollection } from '../../mongo/client';
 
 export const messagesRouter = Router();
 
-// GET /messages to fetch all messages
 messagesRouter.get('/', async (req, res) => {
   try {
     const messages = await messagesCollection.find().toArray();
@@ -13,7 +12,6 @@ messagesRouter.get('/', async (req, res) => {
   }
 });
 
-// POST /messages/insert to insert a new message
 messagesRouter.post('/insert', async (req, res) => {
   const message = req.body.message;
 

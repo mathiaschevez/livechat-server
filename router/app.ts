@@ -1,6 +1,7 @@
 import express from 'express';
 import { messagesRouter } from './messages';
 import cors from 'cors';
+import { votesRouter } from './votes';
 
 export const app = express();
 
@@ -9,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/messages', messagesRouter);
+app.use('/votes', votesRouter);
 
 app.get('/', (req, res) => {
   res.send('Server is running');

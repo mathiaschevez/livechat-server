@@ -1,6 +1,6 @@
 import type http from 'http';
 import { Server } from 'socket.io';
-import { messagesCollection } from '../mongo/client';
+import { registerMessages } from './messages';
 
 async function listen(server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>) {
   const io = new Server(server, {
@@ -10,25 +10,9 @@ async function listen(server: http.Server<typeof http.IncomingMessage, typeof ht
     }
   });
 
-  // Change Stream for real-time updates (this part should also be handled)
-  // const changeStream = messages.watch();
-  // changeStream.on("change", next => {
-  //   if (next.operationType === 'insert') {
-  //     io.emit('chat message', next.fullDocument?.message);
-  //   }
-  // });
-
   io.on("connection", (socket) => {
+    registerMessages(io, socket)
     console.log("A user connected");
-    socket.on("chat message", async (msg) => {
-      try {
-        await messagesCollection.insertOne({ message: msg });
-        io.emit("chat message", msg); // Broadcast message to all clients
-      } catch (err) {
-        console.error('Error inserting message into MongoDB:', err);
-        socket.emit("error", "Could not save message.");
-      }
-    });
 
     socket.on("disconnect", () => {
       console.log("User disconnected");
@@ -44,3 +28,11 @@ async function listen(server: http.Server<typeof http.IncomingMessage, typeof ht
 const socket = { listen };
 
 export { socket };
+
+  // Change Stream for real-time updates (this part should also be handled)
+  // const changeStream = messages.watch();
+  // changeStream.on("change", next => {
+  //   if (next.operationType === 'insert') {
+  //     io.emit('chat message', next.fullDocument?.message);
+  //   }
+  // });

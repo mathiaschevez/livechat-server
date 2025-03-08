@@ -3,9 +3,14 @@ import { messagesCollection, votesCollection } from '../../mongo/client';
 
 export const votesRouter = Router();
 
-votesRouter.get('/', async (req, res) => {
+votesRouter.post('/', async (req: { body: { rankingId: string } }, res) => {
+  const { rankingId } = req.body;
+
   try {
-    const votes = await votesCollection.find().toArray();
+    const votes = await votesCollection
+      .find({ rankingId: Number(rankingId) })
+      .toArray();
+
     res.json(votes);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch votes' });

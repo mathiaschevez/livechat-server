@@ -19,10 +19,10 @@ type ServerToClientEvents = {
 }
 
 export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEvents> , socket: Socket<ClientToServerEvents, ServerToClientEvents> ) {
-  // socket.on('listenForVotes', rankingId => {
-  //   console.log(`listening to votes on ${rankingId}`)
-  //   socket.join(rankingId.toString()
-  // )});
+  socket.on('listenForVotes', rankingId => {
+    console.log(`listening to votes on ${rankingId}`);
+    socket.join(rankingId.toString());
+  });
 
   socket.on('vote', async (vote) => {
     try {
@@ -38,7 +38,7 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
           { upsert: true }
         );
       
-      io.emit("vote", vote); // Broadcast message to clients listening to ranking id
+      io.in(vote.rankingId.toString()).emit("vote", vote); // Broadcast message to clients listening to ranking id
     } catch (err) {
       console.error('Error inserting message into MongoDB:', err);
     }

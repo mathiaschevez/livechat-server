@@ -22,5 +22,6 @@ connectMongo();
 
 const database = client.db('livechat');
 
+export const usersCollection = database.collection('users');
 export const messagesCollection = database.collection('messages');
 export const votesCollection = database.collection('votes');

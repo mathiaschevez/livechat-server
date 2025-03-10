@@ -10,6 +10,7 @@ type Vote = {
 }
 
 interface ClientToServerEvents {
+  stopListeningForVotes: (rankingId: number) => void,
   listenForVotes: (rankingId: number) => void,
   vote: (vote: Vote) => void
 }
@@ -20,9 +21,14 @@ type ServerToClientEvents = {
 
 export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEvents> , socket: Socket<ClientToServerEvents, ServerToClientEvents> ) {
   socket.on('listenForVotes', rankingId => {
-    console.log(`listening to votes on ${rankingId}`);
+    console.log(`Client ${socket.id} listening to votes on ${rankingId}`);
     socket.join(rankingId.toString());
   });
+
+  socket.on('stopListeningForVotes', (rankingId) => {
+    console.log(`Client ${socket.id} stopped listening to votes on ${rankingId}`);
+    socket.leave(rankingId.toString());
+  })
 
   socket.on('vote', async (vote) => {
     try {

@@ -4,6 +4,7 @@ import { votesCollection } from "../mongo/client"
 type Vote = {
   voteId: string,
   userId: string,
+  userEmail: string,
   rankItemId: number,
   rankingId: number,
   type: 'upvote' | 'downvote',
@@ -41,6 +42,7 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
             rankingId: vote.rankingId,
             rankItemId: vote.rankItemId,
             userId: vote.userId,
+            userEmail: vote.userEmail,
             type: vote.type,
           } },
           { upsert: true }

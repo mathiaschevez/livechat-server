@@ -13,10 +13,12 @@ interface ClientToServerEvents {
   stopListeningForVotes: (rankingId: number) => void,
   listenForVotes: (rankingId: number) => void,
   vote: (vote: Vote) => void
+  unvote: (vote: Vote) => void
 }
 
 type ServerToClientEvents = {
-  vote: (vote: Vote) => void
+  vote: (vote: Vote) => void;
+  unvote: (unvote: Vote) => void;
 }
 
 export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEvents> , socket: Socket<ClientToServerEvents, ServerToClientEvents> ) {
@@ -44,9 +46,18 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
           { upsert: true }
         );
       
-      io.in(vote.rankingId.toString()).emit("vote", vote); // Broadcast message to clients listening to ranking id
+      io.in(vote.rankingId.toString()).emit("vote", vote);
     } catch (err) {
       console.error('Error inserting message into MongoDB:', err);
+    }
+  });
+
+  socket.on('unvote', async (vote) => {
+    try {
+      await votesCollection.deleteOne({ voteId: vote.voteId });
+      io.in(vote.rankingId.toString()).emit("unvote", vote);
+    } catch (err) {
+      console.error('Error deleting message from MongoDB:', err);
     }
   })
 }

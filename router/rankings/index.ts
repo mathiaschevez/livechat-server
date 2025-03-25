@@ -13,6 +13,15 @@ rankingsRouter.post('/', async (req, res) => {
   }
 });
 
+rankingsRouter.post('/user', async (req, res) => {
+  try {
+    const rankings = await rankingsCollection.find(req.body).toArray();
+    res.json(rankings);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch rankings' });
+  }
+});
+
 rankingsRouter.post('/ranking', async (req, res) => {
   const rankingId = req.body.rankingId;
   

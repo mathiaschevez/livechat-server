@@ -45,18 +45,27 @@ rankingsRouter.post('/insert', async (req, res) => {
 });
 
 rankingsRouter.post('/update', async (req, res) => {
-  const { rankingId, updates }= req.body;
+  const { rankingId, updates } = req.body;
 
   try {
-    await rankingsCollection.updateOne(
-      { _id: rankingId },
+    const result = await rankingsCollection.updateOne(
+      { _id: new ObjectId(rankingId) },
       {
         $set: updates,
         $currentDate: { lastModified: true }
       }
     );
+
+    if (result.modifiedCount === 0) {
+       console.warn(`No ranking found with id: ${rankingId} or no changes applied.`);
+      res.status(404).json({ message: `Ranking not found or no updates applied for id: ${rankingId}` });
+    }
+
+    res.status(200).json({ message: `Ranking updated successfully: ${rankingId}`, result });
   } catch (error) {
-    res.status(500).json({ message: `Failed to update ranking: ${rankingId}`})
+    console.error("Error updating ranking:", error);
+
+    res.status(500).json({ message: `Failed to update ranking: ${rankingId}` });
   }
 });
 

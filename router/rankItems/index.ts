@@ -24,6 +24,31 @@ rankItemsRouter.post('/insert', async (req, res) => {
   }
 });
 
+rankItemsRouter.post('/update', async (req, res) => {
+  const { rankItemId, updates } = req.body;
+
+  try {
+    const result = await rankItemsCollection.updateOne(
+      { _id: new ObjectId(rankItemId) },
+      {
+        $set: updates,
+        $currentDate: { lastModified: true }
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+       console.warn(`No rank item found with id: ${rankItemId} or no changes applied.`);
+      res.status(404).json({ message: `Rank item not found or no updates applied for id: ${rankItemId}` });
+    } else {
+      res.status(200).json({ message: `Ranking updated successfully: ${rankItemId}`, result });
+    }
+  } catch (error) {
+    console.error("Error updating ranking:", error);
+
+    res.status(500).json({ message: `Failed to update rankItem: ${rankItemId}` });
+  }
+});
+
 rankItemsRouter.post('/delete', async (req, res) => {
   const { rankItemId } = req.body;
 

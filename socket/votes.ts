@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io"
-import { rankingsCollection, votesCollection } from "../mongo/client"
+import { rankingsCollection, rankItemsCollection, votesCollection } from "../mongo/client"
 import { ObjectId } from "mongodb"
 
 type Vote = {
@@ -55,6 +55,14 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
         { $inc: { voteCount: 1 } }
       );
 
+      // Increment vote on rank item
+      await rankItemsCollection.updateOne(
+        { _id: new ObjectId(vote.rankItemId) },
+        { $inc: {
+          [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: 1
+        }}
+      )
+
       io.in(vote.rankingId.toString()).emit("vote", vote);
     } catch (err) {
       console.error('Error inserting vote into MongoDB:', err);
@@ -70,6 +78,14 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
         { _id: new ObjectId(vote.rankingId) },
         { $inc: { voteCount: -1 } }
       );
+
+      // Decrement vote on rank item
+      await rankItemsCollection.updateOne(
+        { _id: new ObjectId(vote.rankItemId) },
+        { $inc: {
+          [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: -1
+        }}
+      )
 
       io.in(vote.rankingId.toString()).emit("unvote", vote);
     } catch (err) {

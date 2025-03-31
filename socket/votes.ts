@@ -1,5 +1,6 @@
 import { Server, Socket } from "socket.io"
-import { votesCollection } from "../mongo/client"
+import { rankingsCollection, votesCollection } from "../mongo/client"
+import { ObjectId } from "mongodb"
 
 type Vote = {
   voteId: string,
@@ -38,7 +39,7 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
       await votesCollection
         .updateOne(
           { voteId: vote.voteId },
-          { $set: { 
+          { $set: {
             rankingId: vote.rankingId,
             rankItemId: vote.rankItemId,
             userId: vote.userId,
@@ -47,19 +48,32 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
           } },
           { upsert: true }
         );
-      
+
+      // Increment vote count on the ranking
+      await rankingsCollection.updateOne(
+        { _id: new ObjectId(vote.rankingId) },
+        { $inc: { voteCount: 1 } }
+      );
+
       io.in(vote.rankingId.toString()).emit("vote", vote);
     } catch (err) {
-      console.error('Error inserting message into MongoDB:', err);
+      console.error('Error inserting vote into MongoDB:', err);
     }
   });
 
   socket.on('unvote', async (vote) => {
     try {
       await votesCollection.deleteOne({ voteId: vote.voteId });
+
+      // Decrement vote count on the ranking
+      await rankingsCollection.updateOne(
+        { _id: new ObjectId(vote.rankingId) },
+        { $inc: { voteCount: -1 } }
+      );
+
       io.in(vote.rankingId.toString()).emit("unvote", vote);
     } catch (err) {
-      console.error('Error deleting message from MongoDB:', err);
+      console.error('Error deleting vote from MongoDB:', err);
     }
-  })
+  });
 }

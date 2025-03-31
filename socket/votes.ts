@@ -34,60 +34,57 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
     socket.leave(rankingId.toString());
   })
 
-  socket.on('vote', async (vote) => {
+  socket.on('vote', async (vote: Vote) => {
     try {
-      await votesCollection
-        .updateOne(
+      const operations = [
+        votesCollection.updateOne(
           { voteId: vote.voteId },
-          { $set: {
-            rankingId: vote.rankingId,
-            rankItemId: vote.rankItemId,
-            userId: vote.userId,
-            userEmail: vote.userEmail,
-            type: vote.type,
-          } },
+          {
+            $set: {
+              rankingId: vote.rankingId,
+              rankItemId: vote.rankItemId,
+              userId: vote.userId,
+              userEmail: vote.userEmail,
+              type: vote.type,
+            },
+          },
           { upsert: true }
-        );
+        ),
+        rankingsCollection.updateOne(
+          { _id: new ObjectId(vote.rankingId) },
+          { $inc: { voteCount: 1 } }
+        ),
+        rankItemsCollection.updateOne(
+          { _id: new ObjectId(vote.rankItemId) },
+          { $inc: { [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: 1 } }
+        ),
+      ];
 
-      // Increment vote count on the ranking
-      await rankingsCollection.updateOne(
-        { _id: new ObjectId(vote.rankingId) },
-        { $inc: { voteCount: 1 } }
-      );
+      await Promise.all(operations);
 
-      // Increment vote on rank item
-      await rankItemsCollection.updateOne(
-        { _id: new ObjectId(vote.rankItemId) },
-        { $inc: {
-          [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: 1
-        }}
-      )
-
-      io.in(vote.rankingId.toString()).emit("vote", vote);
+      io.in(vote.rankingId.toString()).emit('vote', vote);
     } catch (err) {
       console.error('Error inserting vote into MongoDB:', err);
     }
   });
 
-  socket.on('unvote', async (vote) => {
+  socket.on('unvote', async (vote: Vote) => {
     try {
-      await votesCollection.deleteOne({ voteId: vote.voteId });
+      const operations = [
+        votesCollection.deleteOne({ voteId: vote.voteId }),
+        rankingsCollection.updateOne(
+          { _id: new ObjectId(vote.rankingId) },
+          { $inc: { voteCount: -1 } }
+        ),
+        rankItemsCollection.updateOne(
+          { _id: new ObjectId(vote.rankItemId) },
+          { $inc: { [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: -1 } }
+        ),
+      ];
 
-      // Decrement vote count on the ranking
-      await rankingsCollection.updateOne(
-        { _id: new ObjectId(vote.rankingId) },
-        { $inc: { voteCount: -1 } }
-      );
+      await Promise.all(operations);
 
-      // Decrement vote on rank item
-      await rankItemsCollection.updateOne(
-        { _id: new ObjectId(vote.rankItemId) },
-        { $inc: {
-          [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: -1
-        }}
-      )
-
-      io.in(vote.rankingId.toString()).emit("unvote", vote);
+      io.in(vote.rankingId.toString()).emit('unvote', vote);
     } catch (err) {
       console.error('Error deleting vote from MongoDB:', err);
     }

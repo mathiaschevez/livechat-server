@@ -14,7 +14,7 @@ type Vote = {
 interface ClientToServerEvents {
   stopListeningForVotes: (rankingId: number) => void,
   listenForVotes: (rankingId: number) => void,
-  vote: (vote: Vote) => void
+  vote: (vote: Vote, currentVote: boolean) => void
   unvote: (vote: Vote) => void
 }
 
@@ -34,7 +34,7 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
     socket.leave(rankingId.toString());
   })
 
-  socket.on('vote', async (vote: Vote) => {
+  socket.on('vote', async (vote: Vote, currentVote: boolean) => {
     try {
       const operations = [
         votesCollection.updateOne(
@@ -50,15 +50,31 @@ export function registerVotes(io: Server<ClientToServerEvents, ServerToClientEve
           },
           { upsert: true }
         ),
-        rankingsCollection.updateOne(
-          { _id: new ObjectId(vote.rankingId) },
-          { $inc: { voteCount: 1 } }
-        ),
-        rankItemsCollection.updateOne(
-          { _id: new ObjectId(vote.rankItemId) },
-          { $inc: { [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: 1 } }
-        ),
       ];
+
+      if (!currentVote) {
+        operations.push(
+          rankingsCollection.updateOne(
+            { _id: new ObjectId(vote.rankingId) },
+            { $inc: { voteCount: 1 } }
+          ),
+          rankItemsCollection.updateOne(
+            { _id: new ObjectId(vote.rankItemId) },
+            { $inc: { [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: 1 } }
+          ),
+        )
+      } else {
+        operations.push(
+          rankItemsCollection.updateOne(
+            { _id: new ObjectId(vote.rankItemId) },
+            { $inc: { [vote.type === 'upvote' ? 'upvotes' : 'downvotes']: 1 } }
+          ),
+          rankItemsCollection.updateOne(
+            { _id: new ObjectId(vote.rankItemId) },
+            { $inc: { [vote.type === 'upvote' ? 'downvotes' : 'upvotes']: -1 } }
+          )
+        )
+      }
 
       await Promise.all(operations);
 

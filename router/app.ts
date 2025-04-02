@@ -5,6 +5,7 @@ import { votesRouter } from './votes';
 import { usersRouter } from './users';
 import { rankingsRouter } from './rankings';
 import { rankItemsRouter } from './rankItems';
+import { pendingRankItemsRouter } from './pendingRankItems';
 
 export const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/messages', messagesRouter);
 app.use('/rankings', rankingsRouter);
 app.use('/rankItems', rankItemsRouter);
+app.use('/pendingRankItems', pendingRankItemsRouter);
 app.use('/votes', votesRouter);
 app.use('/users', usersRouter);
 

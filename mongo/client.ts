@@ -26,4 +26,5 @@ export const usersCollection = database.collection('users');
 export const messagesCollection = database.collection('messages');
 export const votesCollection = database.collection('votes');
 export const rankingsCollection = database.collection('rankings');
-export const rankItemsCollection = database.collection('rankItems')
+export const rankItemsCollection = database.collection('rankItems');
+export const pendingRankItemsCollection = database.collection('pendingRankItems');

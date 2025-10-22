@@ -24,19 +24,12 @@ interface ClientToServerEvents {
 type ServerToClientEvents = {
   addMatchResult: (matchResult: MatchResult) => void
   removeMatchResult: (matchResultId: string) => void;
-  sendMatchResults: (matchResults: WithId<MatchResult>[]) => void;
 }
 
 export function registerMatchResults(io: Server<ClientToServerEvents, ServerToClientEvents>, socket: Socket<ClientToServerEvents, ServerToClientEvents>) {
   socket.on('listenForMatchResults', async (eventSlug) => {
     console.log(`Client ${socket.id} listening to  results on ${eventSlug}`);
     socket.join(eventSlug);
-    try {
-      const matchResults = await matchResultsCollection.find({ eventSlug: eventSlug }).toArray();
-      io.emit("sendMatchResults", matchResults); // Placeholder for future implementation
-    } catch (err) {
-      console.error('Error fetching match results from MongoDB:', err);
-    }
   });
 
   socket.on('stopListeningForMatchResults', (eventSlug) => {

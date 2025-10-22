@@ -1,6 +1,17 @@
 import { MongoClient } from 'mongodb';
 import { config } from 'dotenv';
 
+export type MatchResult = {
+  round: number
+  teamOne: string
+  teamOneScore: number
+  teamTwo: string
+  teamTwoScore: number
+  court: number
+  eventSlug: string,
+  division: string,
+}
+
 config();
 
 const client = new MongoClient(process.env.MONGODB_CONNECTION_STRING ?? '', {
@@ -29,4 +40,4 @@ export const rankingsCollection = database.collection('rankings');
 export const rankItemsCollection = database.collection('rankItems');
 export const pendingRankItemsCollection = database.collection('pendingRankItems');
 
-export const matchResultsCollection = database.collection('matchResults');
+export const matchResultsCollection = database.collection<MatchResult>('matchResults');

@@ -29,7 +29,7 @@ type ServerToClientEvents = {
 
 export function registerMatchResults(io: Server<ClientToServerEvents, ServerToClientEvents>, socket: Socket<ClientToServerEvents, ServerToClientEvents>) {
   socket.on('listenForMatchResults', async (eventSlug) => {
-    console.log(`Client ${socket.id} listening to votes on ${eventSlug}`);
+    console.log(`Client ${socket.id} listening to match results on ${eventSlug}`);
     socket.join(eventSlug);
     try {
       const matchResults = await matchResultsCollection.find({ eventSlug: eventSlug }).toArray();
@@ -40,7 +40,7 @@ export function registerMatchResults(io: Server<ClientToServerEvents, ServerToCl
   });
 
   socket.on('stopListeningForMatchResults', (eventSlug) => {
-    console.log(`Client ${socket.id} stopped listening to votes on ${eventSlug}`);
+    console.log(`Client ${socket.id} stopped listening to match results on ${eventSlug}`);
     socket.leave(eventSlug);
   });
 

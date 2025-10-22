@@ -2,11 +2,12 @@ import type http from 'http';
 import { Server } from 'socket.io';
 import { registerMessages } from './messages';
 import { registerVotes } from './votes';
+import { registerMatchResults } from './matchResults';
 
 async function listen(server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>) {
   const io = new Server(server, {
     cors: {
-      origin: [process.env.CLIENT_ORIGIN_URL ?? '', process.env.RANKIT_CLIENT_URL ?? ''], // Allow frontend to connect
+      origin: [process.env.CLIENT_ORIGIN_URL ?? '', process.env.RANKIT_CLIENT_URL ?? '', process.env.PARAGON_CLIENT_URL ?? ''], // Allow frontend to connect
       methods: ["GET", "POST"]
     }
   });
@@ -16,6 +17,7 @@ async function listen(server: http.Server<typeof http.IncomingMessage, typeof ht
 
     registerMessages(io, socket);
     registerVotes(io, socket);
+    registerMatchResults(io, socket);
 
     socket.on("disconnect", () => {
       console.log("User disconnected");

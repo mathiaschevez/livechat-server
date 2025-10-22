@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { matchResultsCollection, messagesCollection } from "../mongo/client";
+import { matchResultsCollection,  } from "../mongo/client";
 import { ObjectId, WithId } from "mongodb";
 
 type MatchResult = {
@@ -29,7 +29,7 @@ type ServerToClientEvents = {
 
 export function registerMatchResults(io: Server<ClientToServerEvents, ServerToClientEvents>, socket: Socket<ClientToServerEvents, ServerToClientEvents>) {
   socket.on('listenForMatchResults', async (eventSlug) => {
-    console.log(`Client ${socket.id} listening to match results on ${eventSlug}`);
+    console.log(`Client ${socket.id} listening to  results on ${eventSlug}`);
     socket.join(eventSlug);
     try {
       const matchResults = await matchResultsCollection.find({ eventSlug: eventSlug }).toArray();
@@ -46,19 +46,19 @@ export function registerMatchResults(io: Server<ClientToServerEvents, ServerToCl
 
   socket.on("addMatchResult", async (matchResult) => {
     try {
-      await messagesCollection.insertOne({ matchResult: matchResult });
+      await matchResultsCollection.insertOne(matchResult);
       io.emit("addMatchResult", matchResult);
     } catch (err) {
       console.error('Error inserting match result into MongoDB:', err);
     }
   });
 
-  socket.on('removeMatchResult', async (matchResultId) => {
-    try {
-      await messagesCollection.deleteOne({ _id: matchResultId });
-      io.emit('removeMatchResult', matchResultId);
-    } catch (err) {
-      console.error('Error removing match result from MongoDB:', err);
-    }
-  });
+  // socket.on('removeMatchResult', async (matchResultId) => {
+  //   try {
+  //     await matchResultsCollection.deleteOne({ _id: matchResultId });
+  //     io.emit('removeMatchResult', matchResultId);
+  //   } catch (err) {
+  //     console.error('Error removing match result from MongoDB:', err);
+  //   }
+  // });
 }

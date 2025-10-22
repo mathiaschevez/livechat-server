@@ -14,13 +14,13 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/matchResults', matchResultsRouter);
 app.use('/messages', messagesRouter);
 app.use('/rankings', rankingsRouter);
 app.use('/rankItems', rankItemsRouter);
 app.use('/pendingRankItems', pendingRankItemsRouter);
 app.use('/votes', votesRouter);
 app.use('/users', usersRouter);
-app.use('/matchResults', matchResultsRouter); // Assuming match results are handled in messagesRouter
 
 app.get('/', (req, res) => {
   res.send('Server is running');

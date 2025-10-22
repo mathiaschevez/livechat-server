@@ -3,10 +3,10 @@ import { matchResultsCollection } from '../../mongo/client';
 
 export const matchResultsRouter = Router();
 
-matchResultsRouter.get('/', async (req, res) => {
+matchResultsRouter.post('/', async (req, res) => {
   try {
-    const matchResults = await matchResultsCollection.find().toArray();
-    res.json(matchResults);
+    const rankItems = await matchResultsCollection.find(req.body).toArray();
+    res.json(rankItems);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch match results' });
   }

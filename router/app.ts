@@ -6,6 +6,7 @@ import { usersRouter } from './users';
 import { rankingsRouter } from './rankings';
 import { rankItemsRouter } from './rankItems';
 import { pendingRankItemsRouter } from './pendingRankItems';
+import { matchResultsRouter } from './matchResults';
 
 export const app = express();
 
@@ -19,6 +20,7 @@ app.use('/rankItems', rankItemsRouter);
 app.use('/pendingRankItems', pendingRankItemsRouter);
 app.use('/votes', votesRouter);
 app.use('/users', usersRouter);
+app.use('/matchResults', matchResultsRouter); // Assuming match results are handled in messagesRouter
 
 app.get('/', (req, res) => {
   res.send('Server is running');

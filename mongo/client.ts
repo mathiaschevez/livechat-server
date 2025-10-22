@@ -28,3 +28,5 @@ export const votesCollection = database.collection('votes');
 export const rankingsCollection = database.collection('rankings');
 export const rankItemsCollection = database.collection('rankItems');
 export const pendingRankItemsCollection = database.collection('pendingRankItems');
+
+export const matchResultsCollection = database.collection('matchResults');

@@ -1,57 +1,52 @@
-import { Server, Socket } from "socket.io";
-import { matchResultsCollection,  } from "../mongo/client";
-import { ObjectId, WithId } from "mongodb";
+import type { Server, Socket } from "socket.io";
+import { matchResultsCollection } from "../mongo/client";
+import { ClientToServerEvents, MatchResultIn, MatchResultOut, ServerToClientEvents } from "../types/socket";
 
-type MatchResult = {
-  _id: ObjectId,
-  round: number,
-  teamOne: string,
-  teamOneScore: number,
-  teamTwo: string,
-  teamTwoScore: number,
-  court: number,
-  eventSlug: string,
-  division: string
-}
 
-interface ClientToServerEvents {
-  stopListeningForMatchResults: (eventSlug: string) => void,
-  listenForMatchResults: (eventSlug: string) => void,
-  addMatchResult: (matchResult: MatchResult) => void
-  removeMatchResult: (matchResultId: string) => void,
-}
-
-type ServerToClientEvents = {
-  addMatchResult: (matchResult: MatchResult) => void
-  removeMatchResult: (matchResultId: string) => void;
-}
-
-export function registerMatchResults(io: Server<ClientToServerEvents, ServerToClientEvents>, socket: Socket<ClientToServerEvents, ServerToClientEvents>) {
-  socket.on('listenForMatchResults', async (eventSlug) => {
-    console.log(`Client ${socket.id} listening to  results on ${eventSlug}`);
+export function registerMatchResults(
+  io: Server<ClientToServerEvents, ServerToClientEvents>,
+  socket: Socket<ClientToServerEvents, ServerToClientEvents>
+) {
+  socket.on("matchResult:listen", (eventSlug) => {
     socket.join(eventSlug);
+    console.log(`[socket] ${socket.id} joined room ${eventSlug}`);
   });
 
-  socket.on('stopListeningForMatchResults', (eventSlug) => {
-    console.log(`Client ${socket.id} stopped listening to match results on ${eventSlug}`);
+  socket.on("matchResult:unlisten", (eventSlug) => {
     socket.leave(eventSlug);
+    console.log(`[socket] ${socket.id} left room ${eventSlug}`);
   });
 
-  socket.on("addMatchResult", async (matchResult) => {
+  socket.on("matchResult:add", async (doc: MatchResultIn, ack) => {
     try {
-      await matchResultsCollection.insertOne(matchResult);
-      io.emit("addMatchResult", matchResult);
+      // Optional: enforce uniqueness to avoid duplicates by court/round
+      // await matchResultsCollection.createIndex(
+      //   { eventSlug: 1, division: 1, round: 1, court: 1, teamOne: 1, teamTwo: 1 },
+      //   { unique: true, name: "uniq_event_div_round_court_teams" }
+      // );
+
+      const { insertedId } = await matchResultsCollection.insertOne(doc);
+      const out: MatchResultOut = { ...doc, _id: insertedId.toString() };
+
+      // only notify clients in that event’s room
+      io.to(doc.eventSlug).emit("matchResult:added", out);
+
+      ack?.({ ok: true, id: out._id });
     } catch (err) {
-      console.error('Error inserting match result into MongoDB:', err);
+      console.error("[socket] addMatchResult failed", err);
+      ack?.({ ok: false, error: "DB_INSERT_FAILED" });
     }
   });
 
-  // socket.on('removeMatchResult', async (matchResultId) => {
+  // If you later implement removal:
+  // socket.on("matchResult:remove", async ({ id, eventSlug }, ack) => {
   //   try {
-  //     await matchResultsCollection.deleteOne({ _id: matchResultId });
-  //     io.emit('removeMatchResult', matchResultId);
-  //   } catch (err) {
-  //     console.error('Error removing match result from MongoDB:', err);
+  //     const _id = new ObjectId(id);
+  //     await matchResultsCollection.deleteOne({ _id });
+  //     io.to(eventSlug).emit("matchResult:removed", id);
+  //     ack?.({ ok: true });
+  //   } catch (e) {
+  //     ack?.({ ok: false, error: "DB_DELETE_FAILED" });
   //   }
   // });
 }

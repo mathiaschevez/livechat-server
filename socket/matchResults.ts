@@ -1,6 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import { matchResultsCollection } from "../mongo/client";
-import { ClientToServerEvents, MatchResultIn, MatchResultOut, ServerToClientEvents } from "../types/socket";
+import { ClientToServerEvents, MatchResultIn, MatchResultOut, RemoveMatchIn, ServerToClientEvents } from "../types/socket";
+import { ObjectId } from "mongodb";
 
 
 export function registerMatchResults(
@@ -38,15 +39,16 @@ export function registerMatchResults(
     }
   });
 
-  // If you later implement removal:
-  // socket.on("matchResult:remove", async ({ id, eventSlug }, ack) => {
-  //   try {
-  //     const _id = new ObjectId(id);
-  //     await matchResultsCollection.deleteOne({ _id });
-  //     io.to(eventSlug).emit("matchResult:removed", id);
-  //     ack?.({ ok: true });
-  //   } catch (e) {
-  //     ack?.({ ok: false, error: "DB_DELETE_FAILED" });
-  //   }
-  // });
+  socket.on("matchResult:remove", async (payload: RemoveMatchIn, ack) => {
+    try {
+      const _id = new ObjectId(payload.id);
+      await matchResultsCollection.deleteOne({ _id });
+      // Notify only the appropriate division room
+      io.to(payload.eventSlug).emit("matchResult:removed", payload.id);
+      ack?.({ ok: true });
+    } catch (e) {
+      console.error("[socket] remove failed", e);
+      ack?.({ ok: false, error: "DB_DELETE_FAILED" });
+    }
+  });
 }

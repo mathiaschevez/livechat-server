@@ -12,6 +12,12 @@ export type MatchResultIn = {
   division: string;
 };
 
+export type RemoveMatchIn = {
+  id: string; // _id as string
+  eventSlug: string;
+  division: string;
+};
+
 export type MatchResultDoc = WithId<MatchResultIn>; // has _id: ObjectId
 
 export type MatchResultOut = MatchResultIn & { _id: string }; // normalized for clients
@@ -23,9 +29,14 @@ export interface ClientToServerEvents {
     payload: MatchResultIn,
     ack?: (res: { ok: true; id: string } | { ok: false; error: string }) => void
   ) => void;
+  "matchResult:remove": (
+    payload: RemoveMatchIn,
+    ack?: (res: { ok: true } | { ok: false; error: string }) => void
+  ) => void;
   // you can add remove/update variations later
 }
 
 export interface ServerToClientEvents {
   "matchResult:added": (payload: MatchResultOut) => void;
+  "matchResult:removed": (id: string) => void;
 }
